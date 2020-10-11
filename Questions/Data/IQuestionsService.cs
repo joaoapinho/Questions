@@ -9,6 +9,6 @@ namespace Questions.Data
   interface IQuestionsService
   {
     Task<HttpResponseMessage> CheckHealth();
-    Task<IEnumerable<Question>> GetQuestions();
+    Task<IEnumerable<Question>> GetQuestions(QuestionParameters questionParameters);
   }
 }

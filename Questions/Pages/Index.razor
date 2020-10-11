@@ -1,6 +1,9 @@
 ﻿@page "/"
 @using Questions.Data
+
 @inject QuestionsService QuestionsService
+@inject NavigationManager NavigationManager
+
 
 @if (isLoaded)
 {
@@ -8,24 +11,38 @@
 }
 else
 {
-  <h2> Loading....</h2>
+  if (!reload)
+  {
+    <h2> Loading....</h2>
+  }
+  else
+  {
+    <div class="alert alert-warnign">
+      <h2> Could not connect to questions service.</h2>
+      <button class="btn btn-primary" @onclick="Refresh">Click to retry</button>
+    </div>
+  }
 }
-@*<h1>Hello, world!</h1>
-
-  Welcome to your new app.
-
-  <SurveyPrompt Title="How is Blazor working for you?" />*@
 
 @code{
-  bool isLoaded;
+  bool isLoaded = false;
+  bool reload = false;
 
   protected override async Task OnInitializedAsync()
   {
     var result = await QuestionsService.CheckHealth();
     if (result.IsSuccessStatusCode)
-      isLoaded = true;
+    {
+      NavigationManager.NavigateTo("questions");
+    }
     else
     {
+      reload = true;
     }
+  }
+
+  public async void Refresh()
+  {
+    await OnInitializedAsync();
   }
 }

@@ -27,7 +27,6 @@ namespace Questions
     {
       services.AddRazorPages();
       services.AddServerSideBlazor();
-
       services.AddHttpClient();
             services.AddTransient<QuestionsService>();
     }
