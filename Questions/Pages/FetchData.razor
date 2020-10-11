@@ -1,7 +1,7 @@
 ﻿@page "/fetchdata"
 
 @using Questions.Data
-@inject WeatherForecastService ForecastService
+@inject QuestionsService QuestionsService
 
 <h1>Weather forecast</h1>
 
@@ -26,10 +26,10 @@ else
             @foreach (var forecast in forecasts)
             {
                 <tr>
-                    <td>@forecast.Date.ToShortDateString()</td>
+                    @*<td>@forecast.Date.ToShortDateString()</td>
                     <td>@forecast.TemperatureC</td>
                     <td>@forecast.TemperatureF</td>
-                    <td>@forecast.Summary</td>
+                    <td>@forecast.Summary</td>*@
                 </tr>
             }
         </tbody>
@@ -37,10 +37,10 @@ else
 }
 
 @code {
-    private WeatherForecast[] forecasts;
+    private IEnumerable<Question> forecasts;
 
     protected override async Task OnInitializedAsync()
     {
-        forecasts = await ForecastService.GetForecastAsync(DateTime.Now);
+        forecasts = await QuestionsService.GetQuestions();
     }
 }

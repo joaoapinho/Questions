@@ -1,7 +1,31 @@
 ﻿@page "/"
+@using Questions.Data
+@inject QuestionsService QuestionsService
 
-<h1>Hello, world!</h1>
+@if (isLoaded)
+{
+  <h2>Loaded</h2>
+}
+else
+{
+  <h2> Loading....</h2>
+}
+@*<h1>Hello, world!</h1>
 
-Welcome to your new app.
+  Welcome to your new app.
 
-<SurveyPrompt Title="How is Blazor working for you?" />
+  <SurveyPrompt Title="How is Blazor working for you?" />*@
+
+@code{
+  bool isLoaded;
+
+  protected override async Task OnInitializedAsync()
+  {
+    var result = await QuestionsService.CheckHealth();
+    if (result.IsSuccessStatusCode)
+      isLoaded = true;
+    else
+    {
+    }
+  }
+}
