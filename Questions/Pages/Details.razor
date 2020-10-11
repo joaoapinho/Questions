@@ -1,0 +1,79 @@
+﻿@page "/question/{QuestionId}"
+@using Questions.Data
+@inject QuestionsRepository QuestionsRepository
+@inject QuestionsService QuestionsService
+
+
+@if (wasFound)
+{
+  <h2>Question #@QuestionId</h2>
+  <div class="col-md-4">
+    <table class="table">
+      <tr>
+        <td>Question</td>
+        <td>@question.QuestionText</td>
+      </tr>
+      <tr>
+        <td>Published at</td>
+        <td>@question.Published_At</td>
+      </tr>
+      <tr>
+        <td><img src="@question.Image_Url" /></td>
+      </tr>
+      <tr>
+        <td>Choices</td>
+
+
+
+        @foreach (Choices choice in question.Choices)
+        {
+        <tr>@choice.Choice</tr>
+        <tr>@choice.Votes</tr>
+      }
+        </tr>
+      </table>
+    </div>
+
+  }
+  else
+  {
+    <p class="alert-danger">Could not find question with id @QuestionId</p>
+  }
+
+
+
+@code {
+  [Parameter]
+  public string QuestionId { get; set; }
+  bool wasFound = false;
+  Question question = new Question();
+
+  
+
+
+
+  protected override async Task OnInitializedAsync()
+  {
+    if (!int.TryParse(QuestionId, out int id))
+    { wasFound = false; return; }
+    question = QuestionsRepository.Questions.FirstOrDefault(question => question.Id.Equals(id));
+
+
+    if (question != null)
+    {
+      wasFound = true; return;
+    }
+    try
+    {
+      question = await QuestionsService.GetQuestion(id);
+      wasFound = question != null;
+    }
+    catch
+    {
+      wasFound = false;
+    }
+
+   
+  }
+
+}

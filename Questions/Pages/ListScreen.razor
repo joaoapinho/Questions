@@ -3,23 +3,28 @@
 @using Questions.Data
 @inject QuestionsService QuestionsService
 @inject NavigationManager NavManager
+@inject QuestionsRepository QuestionsRepository
 @inject IJSRuntime js
 
 <h1>List Screen</h1>
 
 <p>This component demonstrates fetching data from a service.</p>
 
-@if (QuestionList == null)
+
+
+@if (QuestionsRepository.Questions == null)
 {
   <p><em>Loading...</em></p>
 }
 else
 {
-  <div class="input-group mb-3 justify-content-right">
+  <div class="input-group mb-3">
 
     <input id="filterInput" @bind="filterText" />
     <btn id="filterBtn" class="btn btn-primary" @onclick="@(async() => await FilterResults())">Filter results</btn>
+    <btn class="btn btn-secondary" @onclick="@(async() => Share())">Share these results</btn>
   </div>
+
   <table class="table">
     <thead>
       <tr>
@@ -30,9 +35,9 @@ else
       </tr>
     </thead>
     <tbody>
-      @foreach (var question in QuestionList)
+      @foreach (var question in QuestionsRepository.Questions)
       {
-        <tr>
+        <tr @onclick="@(() => ShowDetail(question.Id))">
           <td>@question.Id </td>
           <td><img src="@question.Thumb_Url" height="50" width="50" /></td>
           <td>@question.QuestionText</td>
@@ -57,11 +62,6 @@ else
 
 
 @code {
-
-
-
-
-  public IEnumerable<Question> QuestionList { get; set; } = new List<Question>();
   private QuestionParameters _productParameters = new QuestionParameters();
 
   private int questionsLimit = 10;
@@ -74,8 +74,6 @@ else
   int curPage = 1;
   #endregion
 
-
-  private ElementReference filterInput;
 
   protected override Task OnAfterRenderAsync(bool firstRender)
   {
@@ -91,6 +89,12 @@ else
   {
     var uri = NavManager.ToAbsoluteUri(NavManager.Uri);
     _productParameters.Filter = "";
+    if (Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(uri.Query).TryGetValue("question_id", out var _id))
+    {
+      NavManager.NavigateTo($"question/{_id}");
+    }
+
+
     if (Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(uri.Query).TryGetValue("question_filter", out var _filter))
     {
 
@@ -112,17 +116,17 @@ else
     _productParameters.Limit = questionsLimit;
     _productParameters.Offset = 0;
 
-
-    QuestionList = await QuestionsService.GetQuestions(_productParameters);
+    var qs = await QuestionsService.GetQuestions(_productParameters);
+    QuestionsRepository.SetProperty(qs);
     isLastPage = false;
 
   }
 
-
   public async Task FilterResults()
   {
     _productParameters.Filter = filterText;
-    QuestionList = await QuestionsService.GetQuestions(_productParameters);
+    var q = await QuestionsService.GetQuestions(_productParameters);
+    QuestionsRepository.SetProperty(q);
     StateHasChanged();
   }
 
@@ -146,11 +150,21 @@ else
     _productParameters.Limit = questionsLimit;
     _productParameters.Offset = curPage == 1 ? 0 : questionsLimit * (curPage - 1);
 
-    QuestionList = await QuestionsService.GetQuestions(_productParameters);
-    if (QuestionList.Count() < questionsLimit) isLastPage = true;
+    var q = await QuestionsService.GetQuestions(_productParameters);
+    QuestionsRepository.SetProperty(q);
+    if (QuestionsRepository.Questions.Count() < questionsLimit) isLastPage = true;
     if (curPage == 1) isFirstPage = true;
 
     StateHasChanged();
   }
 
+  public void ShowDetail(int questionId)
+  {
+    NavManager.NavigateTo($"question/{questionId}");
+  }
+
+  public void Share()
+  {
+
+  }
 }
