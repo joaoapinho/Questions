@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Text.Json;
 using System.Threading.Tasks;
 
@@ -58,6 +59,19 @@ namespace Questions.Data
       {
         return null;
       }
+    }
+
+    public async Task<HttpStatusCode> Vote(Question question, string choice)
+    {
+      var tmpObj = question;
+      tmpObj.Choices.Find(x => x.Choice.Equals(choice)).Votes++;
+      var buffer = System.Text.Encoding.UTF8.GetBytes(JsonSerializer.Serialize(tmpObj));
+      var byteContent = new ByteArrayContent(buffer);
+      byteContent.Headers.ContentType = new MediaTypeHeaderValue("application/json");
+
+      var response = await httpClient.PostAsync($"questions/{question.Id}", byteContent).ConfigureAwait(false);
+      if (response.IsSuccessStatusCode) question = tmpObj;
+      return response.StatusCode;
     }
 
     public async Task<HttpStatusCode> SendEmail(string email, string url)

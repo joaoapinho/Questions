@@ -39,7 +39,18 @@
               <Axis AxisType="AxisType.Y" Position="Position.Left" />
             </AxisCollection>
           </FlexChart>
+
+    
+          </tr>
+        <tr>
+          @foreach (Choices choice in question.Choices)
+          {
+            <td>
+              @choice.Choice - @choice.Votes Votes.  <button class="btn btn-outline-dark" @onclick=@(async () => await Vote(@choice.Choice))>Vote on this</button>
+            </td>
+          }
         </tr>
+
       </table>
     </div>
     <div class="col-md-6">
@@ -88,9 +99,14 @@ else
 
 
   }
-  public async void GoBack()
+  public void GoBack()
   {
     NavigationManager.NavigateTo($"questions");
+  }
+
+  public async Task Vote(string choice)
+  {
+    await QuestionsService.Vote(question, choice);
   }
 
 }
