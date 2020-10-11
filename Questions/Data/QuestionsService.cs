@@ -1,8 +1,10 @@
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -56,6 +58,15 @@ namespace Questions.Data
       {
         return null;
       }
+    }
+
+    public async Task<HttpStatusCode> SendEmail(string email, string url)
+    {
+      var parameters = new Dictionary<string, string> { { "destination_email", email }, { "content_url", Uri.EscapeDataString(url) } };
+      var encodedContent = new FormUrlEncodedContent(parameters);
+
+      var response = await httpClient.PostAsync("share", encodedContent).ConfigureAwait(false);
+      return response.StatusCode;
     }
 
 

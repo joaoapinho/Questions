@@ -1,0 +1,63 @@
+﻿@using Questions.Data
+@inject QuestionsService QuestionsService
+@inject NavigationManager NavigationManager
+
+<input @bind="emailAddress" />
+<btn class="btn btn-secondary" @onclick="(async() => await ShareResults())">Share these results</btn>
+
+@if (showDialog)
+{
+
+  <div class="modal fade show d-block" id="exampleModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="titleLabel">Email Share</h5>
+          <button type="button" class="close" @onclick="@Close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">×</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          @result
+        </div>
+      </div>
+    </div>
+  </div>
+}
+
+@code {
+
+  public string emailAddress;
+  bool showDialog = false;
+  string result;
+
+  public async Task ShareResults()
+  {
+    if(emailAddress== null)
+    {
+      result = "Email cannot be empty";
+      showDialog = true;
+      return;
+    }
+
+    System.Net.HttpStatusCode q = await QuestionsService.SendEmail(emailAddress, NavigationManager.Uri);
+    if (q.Equals(System.Net.HttpStatusCode.OK))
+    {
+      result = "Email sent";
+    }
+    else
+    {
+      result = "Could not send email, please try again";
+    }
+    showDialog = true;
+
+  }
+
+  public void  Close()
+  {
+    showDialog = false;
+  }
+
+
+}
+
