@@ -1,44 +1,58 @@
 ﻿@page "/question/{QuestionId}"
 @using Questions.Data
+@using C1.Chart
+@using C1.Blazor.Chart
 @inject QuestionsRepository QuestionsRepository
 @inject QuestionsService QuestionsService
+@inject NavigationManager NavigationManager
 
 
 @if (wasFound)
 {
   <h2>Question #@QuestionId</h2>
-  <div class="col-md-4">
-    <table class="table">
-      <tr>
-        <td>Question</td>
-        <td>@question.QuestionText</td>
-      </tr>
-      <tr>
-        <td>Published at</td>
-        <td>@question.Published_At</td>
-      </tr>
-      <tr>
-        <td><img src="@question.Image_Url" /></td>
-      </tr>
-      <tr>
-        <td>Choices</td>
+  <h4>@question.QuestionText</h4>
 
+  <div class="row">
 
+    <div class="col-md-6">
+      <table class="table">
+        <tr>
+          <td>Published at</td>
+          <td>@question.Published_At</td>
+        </tr>
+        <tr>
+          <td>Choices</td>
 
-        @foreach (Choices choice in question.Choices)
-        {
-        <tr>@choice.Choice</tr>
-        <tr>@choice.Votes</tr>
-      }
+          <FlexChart Class="chart" ChartType="ChartType.Bar" Stacking="Stacking.None"
+                     LegendPosition="Position.Bottom" LegendStyle="font-size:18px"
+                     BindingX="Values" ItemsSource="@question.Choices">
+            <SeriesCollection>
+              @foreach (Choices choice in question.Choices)
+              {
+                <Series Name="@choice.Choice" Binding="@choice.Choice" />
+              }
+            </SeriesCollection>
+
+            <AxisCollection>
+              <Axis AxisType="AxisType.X" Position="Position.Bottom" />
+              <Axis AxisType="AxisType.Y" Position="Position.Left" />
+            </AxisCollection>
+          </FlexChart>
         </tr>
       </table>
     </div>
+    <div class="col-md-6">
+      <img src="@question.Image_Url" />
+    </div>
+  </div>
 
-  }
-  else
-  {
-    <p class="alert-danger">Could not find question with id @QuestionId</p>
-  }
+  <button class="btn btn-secondary" @onclick="GoBack">Go back</button>
+
+}
+else
+{
+  <p class="alert-danger">Could not find question with id @QuestionId</p>
+}
 
 
 
@@ -47,8 +61,6 @@
   public string QuestionId { get; set; }
   bool wasFound = false;
   Question question = new Question();
-
-  
 
 
 
@@ -73,7 +85,11 @@
       wasFound = false;
     }
 
-   
+
+  }
+  public async void GoBack()
+  {
+    NavigationManager.NavigateTo($"questions");
   }
 
 }

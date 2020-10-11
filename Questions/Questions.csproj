@@ -4,4 +4,8 @@
     <TargetFramework>netcoreapp3.1</TargetFramework>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="C1.Blazor.Chart" Version="3.1.20202.470" />
+  </ItemGroup>
+
 </Project>
