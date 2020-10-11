@@ -40,8 +40,8 @@
             </AxisCollection>
           </FlexChart>
 
-    
-          </tr>
+
+        </tr>
         <tr>
           @foreach (Choices choice in question.Choices)
           {
@@ -106,7 +106,19 @@ else
 
   public async Task Vote(string choice)
   {
-    await QuestionsService.Vote(question, choice);
-  }
 
+    var questions = QuestionsRepository.Questions;
+    System.Net.HttpStatusCode result = await QuestionsService.Vote(question, choice);
+    if (result.Equals(System.Net.HttpStatusCode.Created))
+    {
+
+      questions.Remove(question);
+      questions.Add(question);
+      QuestionsRepository.SetProperty(questions);
+
+    }
+
+  }
 }
+
+

@@ -63,14 +63,14 @@ namespace Questions.Data
 
     public async Task<HttpStatusCode> Vote(Question question, string choice)
     {
-      var tmpObj = question;
-      tmpObj.Choices.Find(x => x.Choice.Equals(choice)).Votes++;
-      var buffer = System.Text.Encoding.UTF8.GetBytes(JsonSerializer.Serialize(tmpObj));
+
+      question.Choices.Find(x => x.Choice.Equals(choice)).Votes++;
+      var buffer = System.Text.Encoding.UTF8.GetBytes(JsonSerializer.Serialize(question));
       var byteContent = new ByteArrayContent(buffer);
       byteContent.Headers.ContentType = new MediaTypeHeaderValue("application/json");
 
-      var response = await httpClient.PostAsync($"questions/{question.Id}", byteContent).ConfigureAwait(false);
-      if (response.IsSuccessStatusCode) question = tmpObj;
+      var response = await httpClient.PutAsync($"questions/{question.Id}", byteContent).ConfigureAwait(false);
+
       return response.StatusCode;
     }
 
