@@ -17,3 +17,4 @@ Open the solution in Visual Studio and press F5.
 # Thanks To
 Blazor
 C1.Blazor.Chart https://www.grapecity.com/blogs/getting-started-with-interactive-blazor-charts
+Infintite scroll https://github.com/wisne/InfiniteScroll-BlazorServer
