@@ -2,8 +2,8 @@
 @inject QuestionsService QuestionsService
 @inject NavigationManager NavigationManager
 
-<div class="pull-right">
-  <input @bind="emailAddress" />
+<div class="input-group pull-right">
+  <input @bind="emailAddress" placeholder="email address" />
   <btn class="btn btn-secondary" @onclick="(async() => await ShareResults())">Share these results</btn>
 </div>
 @if (showDialog)
