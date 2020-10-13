@@ -4,6 +4,16 @@
 
 let handler;
 
+
+window.ScrollList = {
+  Init: function (ele, ref) {
+    window.ScrollList.ifs = new InfiniteScroll(ele, ref);
+  },
+  RemoveListener: function () {
+    window.ScrollList.ifs.RemoveListener();
+  }
+}
+
 window.Connection = {
   Initialize: function (interop) {
 
@@ -25,3 +35,4 @@ window.Connection = {
     }
   }
 };
+
