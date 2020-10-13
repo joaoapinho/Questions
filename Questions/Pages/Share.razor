@@ -2,9 +2,10 @@
 @inject QuestionsService QuestionsService
 @inject NavigationManager NavigationManager
 
-<input @bind="emailAddress" />
-<btn class="btn btn-secondary" @onclick="(async() => await ShareResults())">Share these results</btn>
-
+<div class="input-group pull-right">
+  <input @bind="emailAddress" placeholder="email address" />
+  <btn class="btn btn-secondary" @onclick="(async() => await ShareResults())">Share these results</btn>
+</div>
 @if (showDialog)
 {
 
@@ -33,7 +34,7 @@
 
   public async Task ShareResults()
   {
-    if(emailAddress== null)
+    if (emailAddress == null)
     {
       result = "Email cannot be empty";
       showDialog = true;
@@ -53,7 +54,7 @@
 
   }
 
-  public void  Close()
+  public void Close()
   {
     showDialog = false;
   }
