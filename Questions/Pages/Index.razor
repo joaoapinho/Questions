@@ -1,0 +1,48 @@
+﻿@page "/"
+@using Questions.Data
+
+@inject QuestionsService QuestionsService
+@inject NavigationManager NavigationManager
+
+
+@if (isLoaded)
+{
+  <h2>Loaded</h2>
+}
+else
+{
+  if (!reload)
+  {
+    <h2> Loading....</h2>
+  }
+  else
+  {
+    <div class="alert alert-warnign">
+      <h2> Could not connect to questions service.</h2>
+      <button class="btn btn-primary" @onclick="Refresh">Click to retry</button>
+    </div>
+  }
+}
+
+@code{
+  bool isLoaded = false;
+  bool reload = false;
+
+  protected override async Task OnInitializedAsync()
+  {
+    var result = await QuestionsService.CheckHealth();
+    if (result.IsSuccessStatusCode)
+    {
+      NavigationManager.NavigateTo("questions");
+    }
+    else
+    {
+      reload = true;
+    }
+  }
+
+  public async void Refresh()
+  {
+    await OnInitializedAsync();
+  }
+}

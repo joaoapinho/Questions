@@ -1,0 +1,60 @@
+﻿@implements IDisposable
+@inject IJSRuntime JsRuntime;
+
+@if (IsOnline)
+{
+    <h6 style="color: green">Online</h6>
+}
+else
+{
+  <div class="modal fade show d-block" id="exampleModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h1 class="modal-title" style="color: red">Offline</h1> Connectivity Lost
+          @*<button type="button" class="close" @onclick="@Close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">×</span>
+            </button>*@
+        </div>
+        <div class="modal-body">
+          The server is currently unreachable.
+        </div>
+      </div>
+    </div>
+  </div>
+
+}
+
+@code {
+
+  //[Parameter]
+  //public RenderFragment Online { get; set; }
+
+  //[Parameter]
+  //public RenderFragment Offline { get; set; }
+
+  public bool IsOnline { get; set; }
+
+  [JSInvokable("Connection.StatusChanged")]
+  public void OnConnectionStatusChanged(bool isOnline)
+  {
+    if (IsOnline != isOnline)
+    {
+      IsOnline = isOnline;
+    }
+
+    StateHasChanged();
+  }
+
+  protected override void OnInitialized()
+  {
+    base.OnInitialized();
+
+    JsRuntime.InvokeVoidAsync("Connection.Initialize", DotNetObjectReference.Create(this));
+  }
+
+  public void Dispose()
+  {
+    JsRuntime.InvokeVoidAsync("Connection.Dispose");
+  }
+}

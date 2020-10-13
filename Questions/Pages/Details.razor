@@ -1,0 +1,126 @@
+﻿@page "/question/{QuestionId}"
+@using Questions.Data
+@using C1.Chart
+@using C1.Blazor.Chart
+@inject QuestionsRepository QuestionsRepository
+@inject QuestionsService QuestionsService
+@inject NavigationManager NavigationManager
+
+<Connection></Connection>
+<Share></Share>
+
+@if (wasFound)
+{
+  <h2>Question #@QuestionId</h2>
+  <h4>@question.QuestionText</h4>
+
+
+  <div class="row">
+
+    <div class="col-md-6">
+      <table class="table">
+        <tr>
+          <td>Published at</td>
+          <td>@question.Published_At</td>
+        </tr>
+        <tr>
+          <td>Choices</td>
+
+          <FlexChart Class="chart" ChartType="ChartType.Bar" Stacking="Stacking.None"
+                     LegendPosition="Position.Bottom" LegendStyle="font-size:18px"
+                     BindingX="Values" ItemsSource="@question.Choices">
+            <SeriesCollection>
+              @foreach (Choices choice in question.Choices)
+              {
+                <Series Name="@choice.Choice" Binding="@choice.Choice" />
+              }
+            </SeriesCollection>
+
+            <AxisCollection>
+              <Axis AxisType="AxisType.X" Position="Position.Bottom" />
+              <Axis AxisType="AxisType.Y" Position="Position.Left" />
+            </AxisCollection>
+          </FlexChart>
+
+
+        </tr>
+        <tr>
+          @foreach (Choices choice in question.Choices)
+          {
+            <td>
+              @choice.Choice - @choice.Votes Votes.  <button class="btn btn-outline-dark" @onclick=@(async () => await Vote(@choice.Choice))>Vote on this</button>
+            </td>
+          }
+        </tr>
+
+      </table>
+    </div>
+    <div class="col-md-6">
+      <img src="@question.Image_Url" />
+    </div>
+  </div>
+
+  <button class="btn btn-secondary" @onclick="GoBack">Go back</button>
+
+}
+else
+{
+  <p class="alert-danger">Could not find question with id @QuestionId</p>
+}
+
+
+
+@code {
+  [Parameter]
+  public string QuestionId { get; set; }
+  bool wasFound = false;
+  Question question = new Question();
+
+
+
+  protected override async Task OnInitializedAsync()
+  {
+    if (!int.TryParse(QuestionId, out int id))
+    { wasFound = false; return; }
+    question = QuestionsRepository.Questions.FirstOrDefault(question => question.Id.Equals(id));
+
+
+    if (question != null)
+    {
+      wasFound = true; return;
+    }
+    try
+    {
+      question = await QuestionsService.GetQuestion(id);
+      wasFound = question != null;
+    }
+    catch
+    {
+      wasFound = false;
+    }
+
+
+  }
+  public void GoBack()
+  {
+    NavigationManager.NavigateTo($"questions");
+  }
+
+  public async Task Vote(string choice)
+  {
+
+    var questions = QuestionsRepository.Questions;
+    System.Net.HttpStatusCode result = await QuestionsService.Vote(question, choice);
+    if (result.Equals(System.Net.HttpStatusCode.Created))
+    {
+
+      questions.Remove(question);
+      questions.Add(question);
+      QuestionsRepository.SetProperty(questions);
+
+    }
+
+  }
+}
+
+

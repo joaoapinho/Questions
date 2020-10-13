@@ -1,0 +1,210 @@
+﻿@page "/questions"
+
+@using Questions.Data
+@inject QuestionsService QuestionsService
+@inject NavigationManager NavManager
+@inject QuestionsRepository QuestionsRepository
+@inject IJSRuntime js
+
+<h1>Question list</h1>
+
+<Connection>
+</Connection>
+
+@*@if (QuestionsRepository.Questions == null)
+  {
+    <p><em>Loading...</em></p>
+  }
+  else
+  {*@
+
+
+<div class="row">
+  <div class="col">
+    <div class="input-group">
+      <input id="filterInput" @bind="filterText" placeholder="filter" />
+      <btn id="filterBtn" class="btn btn-primary" @onclick="@(async () => await FilterResults())">Filter results</btn>
+    </div>
+  </div>
+  <div class="col text-right">
+    <Share></Share>
+  </div>
+</div>
+ 
+  <table class="table ">
+    <thead>
+      <tr>
+        <th> </th>
+        <th> </th>
+        <th>Question</th>
+        <th>Published at</th>
+      </tr>
+    </thead>
+    <tbody>
+      @foreach (var question in QuestionsRepository.Questions)
+      {
+        <tr @onclick="@(() => ShowDetail(question.Id))">
+          <td>@question.Id </td>
+          <td><img src="@question.Thumb_Url" height="50" width="50" /></td>
+          <td>@question.QuestionText</td>
+          <td>@question.Published_At</td>
+        </tr>
+      }
+
+    </tbody>
+  </table>
+
+
+  @if (StopLoading)
+  {
+    <div>
+      <h4>End Of List</h4>
+    </div>
+  }
+
+
+  <div id="list-end" class="mt-5 mb-5 p-5">
+    <p></p>
+    @if (IsLoading)
+    {
+      <div class="d-flex justify-content-center">
+        <div class="spinner-grow" style="width: 3rem; height: 3rem;" role="status">
+          <span class="sr-only">Loading...</span>
+        </div>
+      </div>
+    }
+
+  </div>
+
+
+  @code {
+    private QuestionParameters _productParameters = new QuestionParameters();
+
+    string filterText = "";
+    bool setFocus = false;
+
+    bool IsLoading { get; set; } = false;
+
+    int PageSize = 10;
+
+    int PageNumber = 0;
+
+    bool StopLoading = false;
+
+    protected async override Task OnAfterRenderAsync(bool firstRender)
+    {
+      if (firstRender)
+      {
+        await LoadMore();
+        await InitJsListenerAsync();
+      }
+
+      if (setFocus)
+      {
+        await js.InvokeVoidAsync("focusInput", "filterInput");
+      }
+      //return base.OnAfterRenderAsync(firstRender);
+    }
+
+    protected async Task InitJsListenerAsync()
+    {
+      await js.InvokeVoidAsync("ScrollList.Init", "list-end", DotNetObjectReference.Create(this));
+    }
+
+    [JSInvokable]
+    public async Task LoadMore()
+    {
+      if (!IsLoading)
+      {
+        IsLoading = true;
+
+        StateHasChanged();
+
+        //await Task.Delay(1000);
+
+        var questionsparams = new QuestionParameters()
+        {
+          Offset = (PageNumber) * PageSize,
+          Filter = filterText,
+          Limit = PageSize
+        };
+
+        var newquestions = await QuestionsService.GetQuestions(questionsparams);
+
+        QuestionsRepository.Questions.AddRange(newquestions);
+
+        PageNumber++;
+
+        IsLoading = false;
+
+        StateHasChanged();
+
+        ////at the end of pages or results stop loading anymore
+        //if (no more results....)
+        //{
+        //  await StopListener();
+        //}
+      }
+    }
+
+    public async Task StopListener()
+    {
+      StopLoading = true;
+      IsLoading = false;
+      await js.InvokeVoidAsync("ScrollList.RemoveListener");
+      StateHasChanged();
+    }
+
+
+
+
+    protected override async Task OnInitializedAsync()
+    {
+      var uri = NavManager.ToAbsoluteUri(NavManager.Uri);
+      _productParameters.Filter = "";
+      if (Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(uri.Query).TryGetValue("question_id", out var _id))
+      {
+        NavManager.NavigateTo($"question/{_id}");
+      }
+
+
+      if (Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(uri.Query).TryGetValue("question_filter", out var _filter))
+      {
+
+        if (!string.IsNullOrEmpty(_filter))
+        {
+          setFocus = false;
+          filterText = _filter;
+          _productParameters.Filter = filterText;
+        }
+        else
+        {
+          setFocus = true;
+          StateHasChanged();
+
+        }
+
+      }
+
+      QuestionsRepository.SetProperty(new List<Question>());
+      await LoadMore();
+    }
+
+    public async Task FilterResults()
+    {
+      _productParameters.Filter = filterText;
+      QuestionsRepository.SetProperty(new List<Question>());
+      await LoadMore();
+    }
+
+    public void ShowDetail(int questionId)
+    {
+      NavManager.NavigateTo($"question/{questionId}");
+    }
+
+    public void Dispose()
+    {
+      js.InvokeVoidAsync("ScrollList.RemoveListener");
+    }
+
+  }
